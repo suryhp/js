@@ -160,4 +160,18 @@ $(function() {
 
 
 
+var showToGame=document.querySelectorAll('[href*=toGame] img');
+var toGameCount=0;
+for (var i=0;i<showToGame.length;i++) {
+  if (showToGame[i].offsetHeight===0) {
+    toGameCount++;
+  }
+}
+if (toGameCount>1) {
+  document.body.innerHTML="<h2 id='adb-contant'>我们检测到你可能使用了 AdBlock 或 Adblock Plus，它的部分策略可能会影响到正常功能的使用。<br>你可以设定特殊规则或将嘀哩嘀哩加入白名单，以便更好的在二次元世界驰骋。</h2>";
+}
+
 });
+
+
+
