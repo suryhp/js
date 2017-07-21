@@ -1,204 +1,163 @@
-(function (root, factory) {
-	if (typeof define === 'function' && define.amd) {
-		// AMD. Register as an anonymous module.
-		define([], factory);
-	} else if (typeof module === 'object' && module.exports) {
-		// Node. Does not work with strict CommonJS, but
-		// only CommonJS-like environments that support module.exports,
-		// like Node.
-		module.exports = factory();
-	} else {
-		// Browser globals (root is window)
-		root.turbojs = factory();
-	}
-}(this, function () {
+/**
+ * Created by wffw on 2017-05-12  00012.
+ */
 
-	// turbo.js
-	// (c) turbo - github.com/turbo
-	// MIT licensed
 
-	"use strict";
+$(function() {
 
-	// Mozilla reference init implementation
-	var initGLFromCanvas = function(canvas) {
-		var gl = null;
-		var attr = {alpha : false, antialias : false};
+    //懒加载
+    $('img').lazyload({
+                effect: "fadeIn",
+                threshold:100
+    })
 
-		// Try to grab the standard context. If it fails, fallback to experimental.
-		gl = canvas.getContext("webgl", attr) || canvas.getContext("experimental-webgl", attr);
+    //最新更新换一批
+    $('.update .new-request').click(function () {
+        var $updateList=$('.update .dili ul');
+        var $loadingImg=$('.update .dili .loading-img');
+        $updateList.hide();
+        $loadingImg.addClass('show-loading');
+        var i=0;
+        var timer=setInterval(function () {
+            $loadingImg.css('backgroundPositionY','-'+180*i+'px');
+            i++;
+            if(i>4)i=0;
+        },100);
+        $updateList.append($('.update .dili ul li:lt(6)'));
+        setTimeout(function () {
+            $loadingImg.removeClass('show-loading');
+            $updateList.show();
+            clearInterval(timer);
+        },1000)
+    });
 
-		// If we don't have a GL context, give up now
-		if (!gl)
-			throw new Error("turbojs: Unable to initialize WebGL. Your browser may not support it.");
+    //一周更新时间表
+    var $weekLi= $('.update .update-weekList ul li');
+    var $weekTable= $('.update .two-auto ul');
+    $weekLi.eq(thisWeek).addClass('active');
+    $weekTable.eq(thisWeek).show();
+    $weekLi.click(function () {
+        $(this).addClass('active').siblings().removeClass('active');
+        $weekTable.eq($(this).index()).show().siblings().hide();
+    });
+    
 
-		return gl;
-	}
+    //新番时间表
+    var $week=$('#container-right .week ul li');
+    var $weekList=$('#container-right .week-list ul');
+    $week.eq(thisWeek).addClass('today-week');
+    $weekList.eq(thisWeek).show().siblings().hide();
+    $week.click(function () {
+        $(this).addClass('today-week').siblings().removeClass('today-week');
+        $weekList.eq($(this).index()).show().siblings().hide();
+    });
 
-	var gl = initGLFromCanvas(document.createElement('canvas'));
+    //热门排行
+    var $mouth=$('#container-right .number-mouth ul li');
+    var $mouthList=$('#container-right .mouth-list ul');
+    $mouthList.eq(0).show().siblings().hide();
+    $mouth.click(function () {
+        $(this).addClass('number-mouth-color').siblings().removeClass('number-mouth-color');
+        $mouthList.eq($(this).index()).show().siblings().hide();
+    });
 
-	// turbo.js requires a 32bit float vec4 texture. Some systems only provide 8bit/float
-	// textures. A workaround is being created, but turbo.js shouldn't be used on those
-	// systems anyway.
-	if (!gl.getExtension('OES_texture_float'))
-		throw new Error('turbojs: Required texture format OES_texture_float not supported.');
 
-	// GPU texture buffer from JS typed array
-	function newBuffer(data, f, e) {
-		var buf = gl.createBuffer();
+    //eggs
+    !function () {
+        var clickEle=$('.section-head-i,.dilidili-girl');//触发元素
+        var maxClick=10;//最大点击数
+        var animationTime=5000;//动画执行时间
+        var howLong=150;//出现间隔时间
+        var picCount=80;//出现次数
+        var picUrl='/newimages/run6.gif';
+        var imgWidth=210;
 
-		gl.bindBuffer((e || gl.ARRAY_BUFFER), buf);
-		gl.bufferData((e || gl.ARRAY_BUFFER), new (f || Float32Array)(data), gl.STATIC_DRAW);
+        var clickCount=0;
+        var thisEle;
+        clickEle.bind('click',function () {
+            clickFn($(this));
+        });
+        function clickFn(ele) {
+            thisEle=ele;
+            clickCount++;
+            //clickCount===1?thisEle.attr("do-not-click-me---waring-"+clickCount,""):console.log('next Please!');
+            thisEle.removeAttr('do-not-click-me---waring-'+parseInt(clickCount-1));
+            thisEle.attr("do-not-click-me---waring-"+clickCount,"");
+            clickCount===maxClick?egg(thisEle):console.log('click again Please!'+clickCount);
+        }
+        var timer;
+        function egg(ele) {
+            console.log('Congratulations!');
+            clickEle.unbind('click');
+            var random;
+            ele.removeAttr("do-not-click-me---waring-"+clickCount);
+            clickCount=0;
+            var i=0;
+            timer=setInterval(interval,howLong);
+            function interval() {
+                if(i===picCount){
+                    clearInterval(timer);
+                    i=0;
+                    clickEle.bind('click',function () {
+                        clickFn($(this));
+                    });
+                    /*if(confirm('try again?')){
+                        egg(thisEle);
+                        clickEle.unbind('click');
+                    }*/
+                }else{
+                    random=Math.floor(Math.random()*100);
+                    if(random<=80){
+                        $('body').before($('<div style="' +
+                            'position: fixed;' +
+                            'right: 110%;' +
+                            'width: 210px;' +
+                            'height: '+imgWidth+'px;' +
+                            'background: #000;' +
+                            'z-index:132123;' +
+                            'background: url('+picUrl+') no-repeat;' +
+                            'top: '+random+'%;' +
+                            '" class="egg'+i+'"></div>'));
+                        beginAnimate(i);
+                        i++;
+                        console.log(i)
+                    }else{
+                        interval();
+                    }
+                }
 
-		return buf;
-	}
+            }
+        }
+        var timeList=[1000,1500,2000,3000,3500,4000,5000,6000,7000];
+        function beginAnimate(index) {
+            var ele=$('.egg'+index);
+            ele.animate({
+                right:"-"+imgWidth+"px"
+            },timeList[Math.floor(Math.random()*parseInt(timeList.length-1))],'linear');
+            setTimeout(function (){ele.remove()},animationTime);
+        }
+    }();
 
-	var positionBuffer = newBuffer([ -1, -1, 1, -1, 1, 1, -1, 1 ]);
-	var textureBuffer  = newBuffer([  0,  0, 1,  0, 1, 1,  0, 1 ]);
-	var indexBuffer    = newBuffer([  1,  2, 0,  3, 0, 2 ], Uint16Array, gl.ELEMENT_ARRAY_BUFFER);
 
-	var vertexShaderCode =
-	"attribute vec2 position;\n" +
-	"varying vec2 pos;\n" +
-	"attribute vec2 texture;\n" +
-	"\n" +
-	"void main(void) {\n" +
-	"  pos = texture;\n" +
-	"  gl_Position = vec4(position.xy, 0.0, 1.0);\n" +
-	"}"
+    //backTop
+    var $backTop=$('.back-top');
+    $backTop.hide();
+    $(window).scroll(function () {
+        if($('body').scrollTop()>=400||$('html').scrollTop()>=400){
+            $backTop.fadeIn();
+        }else{
+            $backTop.fadeOut();
+        }
+    });
+    $backTop.click(function () {
+       $('body,html').animate({
+           scrollTop:0
+       },500)
+    });
 
-	var stdlib =
-	"\n" +
-	"precision mediump float;\n" +
-	"uniform sampler2D u_texture;\n" +
-	"varying vec2 pos;\n" +
-	"\n" +
-	"vec4 read(void) {\n" +
-	"  return texture2D(u_texture, pos);\n" +
-	"}\n" +
-	"\n" +
-	"void commit(vec4 val) {\n" +
-	"  gl_FragColor = val;\n" +
-	"}\n" +
-	"\n" +
-	"// user code begins here\n" +
-	"\n"
+    //all 'a' to _blank
+    $('a').attr('target','_blank');
 
-	var vertexShader = gl.createShader(gl.VERTEX_SHADER);
 
-	gl.shaderSource(vertexShader, vertexShaderCode);
-	gl.compileShader(vertexShader);
 
-	// This should not fail.
-	if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS))
-		throw new Error(
-			"\nturbojs: Could not build internal vertex shader (fatal).\n" + "\n" +
-			"INFO: >REPORT< THIS. That's our fault!\n" + "\n" +
-			"--- CODE DUMP ---\n" + vertexShaderCode + "\n\n" +
-			"--- ERROR LOG ---\n" + gl.getShaderInfoLog(vertexShader)
-		);
-
-	// Transfer data onto clamped texture and turn off any filtering
-	function createTexture(data, size) {
-		var texture = gl.createTexture();
-
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.FLOAT, data);
-		gl.bindTexture(gl.TEXTURE_2D, null);
-
-		return texture;
-	}
-
-	return {
-		// run code against a pre-allocated array
-		run : function(ipt, code) {
-			var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-
-			gl.shaderSource(
-				fragmentShader,
-				stdlib + code
-			);
-
-			gl.compileShader(fragmentShader);
-
-			// Use this output to debug the shader
-			// Keep in mind that WebGL GLSL is **much** stricter than e.g. OpenGL GLSL
-			if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-				var LOC = code.split('\n');
-				var dbgMsg = "ERROR: Could not build shader (fatal).\n\n------------------ KERNEL CODE DUMP ------------------\n"
-
-				for (var nl = 0; nl < LOC.length; nl++)
-					dbgMsg += (stdlib.split('\n').length + nl) + "> " + LOC[nl] + "\n";
-
-				dbgMsg += "\n--------------------- ERROR  LOG ---------------------\n" + gl.getShaderInfoLog(fragmentShader)
-
-				throw new Error(dbgMsg);
-			}
-
-			var program = gl.createProgram();
-
-			gl.attachShader(program, vertexShader);
-			gl.attachShader(program, fragmentShader);
-			gl.linkProgram(program);
-
-			if (!gl.getProgramParameter(program, gl.LINK_STATUS))
-				throw new Error('turbojs: Failed to link GLSL program code.');
-
-			var uTexture = gl.getUniformLocation(program, 'u_texture');
-			var aPosition = gl.getAttribLocation(program, 'position');
-			var aTexture = gl.getAttribLocation(program, 'texture');
-
-			gl.useProgram(program);
-
-			var size = Math.sqrt(ipt.data.length) / 4;
-			var texture = createTexture(ipt.data, size);
-
-			gl.viewport(0, 0, size, size);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, gl.createFramebuffer());
-
-			// Types arrays speed this up tremendously.
-			var nTexture = createTexture(new Float32Array(ipt.data.length), size);
-
-			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, nTexture, 0);
-
-			// Test for mobile bug MDN->WebGL_best_practices, bullet 7
-			var frameBufferStatus = (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE);
-
-			if (!frameBufferStatus)
-				throw new Error('turbojs: Error attaching float texture to framebuffer. Your device is probably incompatible. Error info: ' + frameBufferStatus.message);
-
-			gl.bindTexture(gl.TEXTURE_2D, texture);
-			gl.activeTexture(gl.TEXTURE0);
-			gl.uniform1i(uTexture, 0);
-			gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-			gl.enableVertexAttribArray(aTexture);
-			gl.vertexAttribPointer(aTexture, 2, gl.FLOAT, false, 0, 0);
-			gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-			gl.enableVertexAttribArray(aPosition);
-			gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-			gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-			gl.readPixels(0, 0, size, size, gl.RGBA, gl.FLOAT, ipt.data);
-			//                                 ^ 4 x 32 bit ^
-
-			return ipt.data.subarray(0, ipt.length);
-		},
-		alloc: function(sz) {
-			// A sane limit for most GPUs out there.
-			// JS falls apart before GLSL limits could ever be reached.
-			if (sz > 16777216)
-				throw new Error("turbojs: Whoops, the maximum array size is exceeded!");
-
-			var ns = Math.pow(Math.pow(2, Math.ceil(Math.log(sz) / 1.386) - 1), 2);
-			return {
-				data : new Float32Array(ns * 16),
-				length : sz
-			};
-		}
-	};
-
-}));
 
